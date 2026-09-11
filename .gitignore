@@ -1,5 +1,15 @@
 # ---- 原始抓取缓存：体积大（约 27 MB）、可随时重建，不入库 ----
 data/raw_policy_all.json
+data/raw_lhsr.json
+data/raw_ghzyj.json
+data/raw_*.json
+
+# ---- 法规全文缓存：71 个 txt / 1.9 MB，跑 scrape_flk.py 即可重建 ----
+# （data/raw_*.tsv 是各源清单，体积小、有溯源价值，故仍入库）
+data/flk_fulltext/
+
+# ---- 本地备份快照（CSV 历史版本、删掉的 docs 副本）----
+_backup/
 
 # ---- 权威原件（PDF/PNG）：只登记官方直链，不镜像进公开仓库 ----
 # 需要离线留存时跑 `python fetch_assets.py --download` 落到本地即可

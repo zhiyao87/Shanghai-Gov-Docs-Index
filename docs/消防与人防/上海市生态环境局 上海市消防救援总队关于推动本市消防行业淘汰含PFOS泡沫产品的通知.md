@@ -7,10 +7,10 @@
 类型: 通知公告
 分类: 消防与人防
 状态: 有效
-官方链接: https://www.shanghai.gov.cn/zhengce/detail/0024::66114610d5664c0baa532bb30a5ae93b
+官方链接: https://www.shanghai.gov.cn/zhengce/detail?businessId=66114610d5664c0baa532bb30a5ae93b&siteId=0024
 ---
 
-> 本文正文由脚本自上海市官方公开页面提取，仅供检索查阅；以[官方链接](https://www.shanghai.gov.cn/zhengce/detail/0024::66114610d5664c0baa532bb30a5ae93b)发布版本为准。
+> 本文正文由脚本自上海市官方公开页面提取，仅供检索查阅；以[官方链接](https://www.shanghai.gov.cn/zhengce/detail?businessId=66114610d5664c0baa532bb30a5ae93b)发布版本为准。&siteId=0024
 > 依《中华人民共和国著作权法》第五条第一项，具有立法、行政、司法性质的文件不适用著作权法。
 
 # 上海市生态环境局 上海市消防救援总队关于推动本市消防行业淘汰含PFOS泡沫产品的通知

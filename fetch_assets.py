@@ -78,9 +78,18 @@ def absu(href):
 def from_platform(row):
     """平台条目：走详情接口拿三类原件。"""
     sid = bid = None
-    m = re.search(r"detail/([^:]+)::(.+?)/?$", row.get("官方链接", ""))
+    url = row.get("官方链接", "")
+    # 新格式（2026-09-11 起）：/zhengce/detail?businessId=<bid>&siteId=<sid>
+    m = re.search(r"[?&]businessId=([^&#]+)", url)
     if m:
-        sid, bid = m.group(1), m.group(2)
+        bid = m.group(1)
+        m2 = re.search(r"[?&]siteId=([^&#]+)", url)
+        sid = m2.group(1) if m2 else None
+    else:
+        # 旧格式（路径式）：/zhengce/detail/<sid>::<bid>，仅作兼容
+        m = re.search(r"detail/([^:]+)::(.+?)/?$", url)
+        if m:
+            sid, bid = m.group(1), m.group(2)
     if not (sid and bid):
         return "", "", []
     d = common.post_json(DETAIL_API, {"siteId": sid, "businessId": bid},

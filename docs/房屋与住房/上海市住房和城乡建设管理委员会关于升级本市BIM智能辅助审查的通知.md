@@ -7,10 +7,10 @@
 类型: 审查与许可规则
 分类: 房屋与住房
 状态: 有效
-官方链接: https://www.shanghai.gov.cn/zhengce/detail/0011::3f229d117cf04d6ca759e98a85749f26
+官方链接: https://www.shanghai.gov.cn/zhengce/detail?businessId=3f229d117cf04d6ca759e98a85749f26&siteId=0011
 ---
 
-> 本文正文由脚本自上海市官方公开页面提取，仅供检索查阅；以[官方链接](https://www.shanghai.gov.cn/zhengce/detail/0011::3f229d117cf04d6ca759e98a85749f26)发布版本为准。
+> 本文正文由脚本自上海市官方公开页面提取，仅供检索查阅；以[官方链接](https://www.shanghai.gov.cn/zhengce/detail?businessId=3f229d117cf04d6ca759e98a85749f26)发布版本为准。&siteId=0011
 > 依《中华人民共和国著作权法》第五条第一项，具有立法、行政、司法性质的文件不适用著作权法。
 
 # 上海市住房和城乡建设管理委员会关于升级本市BIM智能辅助审查的通知

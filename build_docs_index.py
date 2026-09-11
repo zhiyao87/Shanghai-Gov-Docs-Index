@@ -45,7 +45,11 @@ OUT_MD = os.path.join(HERE, "README.md")
 
 SH = "https://www.shanghai.gov.cn"
 ZJW = "https://zjw.sh.gov.cn"
-PLATFORM_DETAIL = SH + "/zhengce/detail/%s::%s"
+# ⚠ 前台详情页必须用「查询参数式」，不能用路径式。
+# 路径式 /zhengce/detail/<siteId>::<businessId> 在浏览器里打不开文件（戴工 2026-09-11 实测：
+# /zhengce/detail/0010::6e3f54d554174dfd8f366c2f8bd32d93 显示不出内容，
+# 正确写法为 /zhengce/detail?businessId=6e3f54d554174dfd8f366c2f8bd32d93&siteId=0010）。
+PLATFORM_DETAIL = SH + "/zhengce/detail?businessId=%s&siteId=%s"
 
 DISTRICTS = ["浦东新区", "黄浦区", "徐汇区", "长宁区", "静安区", "普陀区", "虹口区",
              "杨浦区", "宝山区", "闵行区", "嘉定区", "金山区", "松江区", "青浦区",
@@ -53,7 +57,7 @@ DISTRICTS = ["浦东新区", "黄浦区", "徐汇区", "长宁区", "静安区",
 
 CAT_ORDER = ["规划与土地", "建筑设计与报建", "工程建设管理", "消防与人防", "房屋与住房",
              "城市更新与历史保护", "绿色低碳与节能", "市政与基础设施", "市容绿化与景观",
-             "建筑垃圾与材料"]
+             "建筑垃圾与材料", "轨道交通"]
 
 # 文件类型判定：(类型名, 判定规则)——顺序即优先级
 TYPE_RULES = [

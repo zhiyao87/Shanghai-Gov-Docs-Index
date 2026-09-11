@@ -7,10 +7,10 @@
 类型: 审查与许可规则
 分类: 工程建设管理
 状态: 有效
-官方链接: https://www.shanghai.gov.cn/zhengce/detail/0011::ae9330e3f9a3428588a413d192f2a0f7
+官方链接: https://www.shanghai.gov.cn/zhengce/detail?businessId=ae9330e3f9a3428588a413d192f2a0f7&siteId=0011
 ---
 
-> 本文正文由脚本自上海市官方公开页面提取，仅供检索查阅；以[官方链接](https://www.shanghai.gov.cn/zhengce/detail/0011::ae9330e3f9a3428588a413d192f2a0f7)发布版本为准。
+> 本文正文由脚本自上海市官方公开页面提取，仅供检索查阅；以[官方链接](https://www.shanghai.gov.cn/zhengce/detail?businessId=ae9330e3f9a3428588a413d192f2a0f7)发布版本为准。&siteId=0011
 > 依《中华人民共和国著作权法》第五条第一项，具有立法、行政、司法性质的文件不适用著作权法。
 
 # 上海市住房和城乡建设管理委员会关于开展BIM辅助综合竣工验收的通知
