@@ -88,6 +88,7 @@ def call(method, path, payload=None, retries=4):
 
 
 G_TOKEN = None
+G_REPO = None
 
 
 def git_out(repo, *args):
@@ -125,8 +126,30 @@ def read_blobs(repo, shas):
     return data
 
 
+def get_remote_head(owner_repo, branch):
+    """取远端 main 当前 HEAD 的 sha，作为新提交的 parent。
+
+    与脚本早期版（parent=[] 走 force PATCH）相比，本版的语义是「fast-forward 友好」：
+    - 本地领先：正常更新远端 main，不丢历史
+    - 本地落后：HTTP 422 'Update is not a fast forward'，脚本主动停下，
+      不会静默覆盖远端领先提交
+    """
+    return call("GET", "/repos/%s/git/ref/heads/%s" % (owner_repo, branch))["object"]["sha"]
+
+
+def update_ref(owner_repo, branch, new_sha):
+    """POST/PATCH refs。优先 POST（远端无此 ref 时）；存在则 PATCH 但不带 force。"""
+    try:
+        call("POST", "/repos/%s/git/refs" % owner_repo,
+             {"ref": "refs/heads/" + branch, "sha": new_sha})
+    except SystemExit:
+        # ref 已存在 → PATCH，要求新 sha 在远端历史里（即 fast-forward）
+        call("PATCH", "/repos/%s/git/refs/heads/%s" % (owner_repo, branch),
+             {"sha": new_sha, "force": False})
+
+
 def upload_blob(content):
-    r = call("POST", "/git/blobs", {
+    r = call("POST", "/repos/%s/git/blobs" % G_REPO, {
         "content": base64.b64encode(content).decode(),
         "encoding": "base64",
     })
@@ -153,11 +176,11 @@ def build_tree(entries_blobs, prefix=""):
     for name, sub in sorted(dirs.items()):
         sub_sha = build_tree(sub, prefix + name + "/")
         tree.append({"path": name, "mode": "040000", "type": "tree", "sha": sub_sha})
-    return call("POST", "/git/trees", {"tree": tree})["sha"]
+    return call("POST", "/repos/%s/git/trees" % G_REPO, {"tree": tree})["sha"]
 
 
 def main():
-    global G_TOKEN
+    global G_TOKEN, G_REPO
     if len(sys.argv) < 3:
         print(__doc__)
         return 1
@@ -169,6 +192,7 @@ def main():
         print("✗ 取不到 GitHub 凭据")
         return 1
     G_TOKEN = tok
+    G_REPO = owner_repo
     print("账号 %s → %s@%s" % (user, owner_repo, branch))
 
     entries = collect_blobs(repo)
@@ -190,18 +214,16 @@ def main():
     root = build_tree(items)
 
     msg = git_out(repo, "log", "-1", "--pretty=%B").decode("utf-8").strip()
+    parent = get_remote_head(owner_repo, branch)
+    print("  远端 parent: %s" % parent[:10])
     print("  建提交 …")
-    commit = call("POST", "/git/commits", {"message": msg, "tree": root, "parents": []})
+    commit = call("POST", "/git/commits",
+                  {"message": msg, "tree": root, "parents": [parent]})
     sha = commit["sha"]
+    print("  新 commit:  %s" % sha[:10])
 
     print("  指向分支 …")
-    try:
-        call("POST", "/git/refs", {"ref": "refs/heads/" + branch, "sha": sha})
-    except SystemExit:
-        cur = call("GET", "/repos/%s/git/ref/heads/%s" % (owner_repo, branch))
-        call("PATCH", "/repos/%s/git/refs/heads/%s" % (owner_repo, branch),
-             {"sha": sha, "force": True})
-        _ = cur
+    update_ref(owner_repo, branch, sha)
     print("✓ 完成：%s@%s = %s" % (owner_repo, branch, sha[:10]))
     return 0
 
