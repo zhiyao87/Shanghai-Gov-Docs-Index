@@ -1,0 +1,62 @@
+许可证 / License
+================
+
+本仓库采取双许可：代码与「本仓库自有的」索引数据分别适用不同条款。
+**政府文件正文不属于本仓库版权范围**，见第 3 条。
+
+------------------------------------------------------------------
+1. 脚本（*.py）
+   MIT License
+
+   Copyright (c) 2026
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+------------------------------------------------------------------
+2. 索引数据与文档（data/、index/、README.md）
+   CC BY 4.0
+   https://creativecommons.org/licenses/by/4.0/
+   （署名：Shanghai-Gov-Docs-Index）
+
+   说明：CC BY 4.0 覆盖的是本仓库对事实性信息的**编排与筛选**成果
+   （分类体系、关键词表、索引结构）。原始文件本身的权利状态见第 3 条。
+
+------------------------------------------------------------------
+3. 政府文件正文与元数据（docs/ 下的正文、各文件标题/文号/发布日期）
+
+   本仓库收录的是**具有立法、行政、司法性质的文件**。
+
+   依《中华人民共和国著作权法》**第五条第一项**：
+
+     「本法不适用于：（一）法律、法规，国家机关的决议、决定、命令
+       和其他具有立法、行政、司法性质的文件，及其官方正式译文；」
+
+   因此该类文件**不适用著作权法**，本仓库对正文的收录不构成侵权，
+   本仓库亦不对其主张任何权利。正文著作权的相关权益归属以发布机关
+   的官方口径为准；如有官方异议，将立即移除对应内容。
+
+   每条文件均保留**官方链接**。正文由脚本自官方公开页面自动提取，
+   可能因页面改版而与发布版本存在差异，**请以官方链接发布版本为准**。
+
+------------------------------------------------------------------
+4. 免责声明
+
+   本仓库是**检索工具**，不构成法律意见，亦不替代官方发布。
+   使用者应自行核对官方原文。因使用本索引产生的任何后果，
+   本仓库作者不承担责任。

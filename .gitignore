@@ -1,0 +1,24 @@
+# ---- 原始抓取缓存：体积大（约 27 MB）、可随时重建，不入库 ----
+data/raw_policy_all.json
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---- 本地临时 ----
+.tmp/
+*.log
+*.tmp
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 抓取中途可能产生的半成品 ----
+data/*.partial
+data/*.bak

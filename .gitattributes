@@ -1,0 +1,39 @@
+# ════════════════════════════════════════════════════════════════════
+#  换行符（EOL）策略 —— 仓库内一律 LF
+#
+#  本文件优先级高于本机 core.autocrlf 全局设置：只要仓库里有它，
+#  换行符行为就由它说了算，跨平台协作不会产生「整文件重写」的 diff 噪音。
+# ════════════════════════════════════════════════════════════════════
+
+* text=auto eol=lf
+
+*.py           text eol=lf
+*.md           text eol=lf
+*.txt          text eol=lf
+*.json         text eol=lf
+*.csv          text eol=lf
+*.tsv          text eol=lf
+*.yml          text eol=lf
+LICENSE        text eol=lf
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+
+# Windows 脚本保留 CRLF
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# 二进制：禁止任何转换
+*.pdf  binary
+*.docx binary
+*.xlsx binary
+*.png  binary
+*.jpg  binary
+*.zip  binary
+
+# ── GitHub 语言统计：索引与正文不算代码 ──────────────────────────
+*.md            linguist-documentation
+index/**        linguist-documentation
+docs/**         linguist-documentation
+data/*.csv      linguist-documentation
+data/*.tsv      linguist-documentation
