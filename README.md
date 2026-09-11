@@ -13,7 +13,7 @@
 | 收录文件总数 | **2590** |
 | 其中的核心文件（地方性法规/规章/办法/规定/细则/导则/审查许可规则） | **1174** |
 | 已附官方正文全文 | **2587** |
-| 已登记红头 PDF / 附表附图 | **2025** / **946** |
+| 已登记红头 PDF / 附表附图 | **1994** / **946** |
 | 地方性法规（市人大制定，效力最高） | **40** |
 | 市级 ／ 区级 ／ 市级（临港） | 2074 ／ 475 ／ 41 |
 | 时间跨度 | 2009 – 2026 |
@@ -74,7 +74,7 @@
 | 取用方式 | 说明 | 已收录 |
 |---|---|---|
 | **正文** | 网页正文，转为 Markdown 便于检索与全文搜 | 2587 条 |
-| **红头PDF** | 盖章红头文件原件，认文号、对版式、报建送审都用它 | 2025 条 |
+| **红头PDF** | 盖章红头文件原件，认文号、对版式、报建送审都用它 | 1994 条 |
 | **附表附图** | 技术规范真正的操作部分（参数表、取值表、图示）——只在附件里 | 946 条 |
 
 **为什么专门标出附表附图**：以《上海市日照分析技术规范》（沪规划资源建〔2021〕437 号）为例，日照计算参数、窗台高度取值、图示全在随文的「附表、附图、附件.pdf」里，**网页正文一个字都没有**。只存正文，等于把这份规范最有用的部分丢了。
@@ -176,6 +176,21 @@
 
 > **提示**：区级文件的检索体验普遍弱于市级，各区栏目结构不统一、分页方式各异。
 想一次覆盖全，用 [上海市统一政策发布平台](https://www.shanghai.gov.cn/zhengce/list)——它纵向贯通市/区/镇三级、横向覆盖各部门，本库的区级数据即来源于此。
+
+## 链接巡检：4,615 个 URL 的状态快照（2026-09-12）
+
+`check_links.py --net --json` 把 `gov_docs.csv` 里每个条目的**官方链接**与**红头PDF**两个字段都拉一遍。判定分四档：
+
+| 判定 | 数量 | 占比 | 含义 |
+|---|---|---|---|
+| ✔ 正常 | 2,514 | 54.5% | PDF 可下载 / HTML 命中标题或文号 |
+| · 前端渲染页 | 2,028 | 43.9% | 政策平台详情页是 JS 异步注入，urllib 抓不到正文，但页面在浏览器里正常 |
+| ⚠ 内容未命中 | 42 | 0.9% | 200 但页面是「国家法律法规数据库」外站跳转，**链接未失效**——条例确实在那，只是来源换了 |
+| ✘ 失效 | 31 | 0.7% | 404，全部是 shanghai.gov.cn/cmsres/... 路径的红头 PDF，发布年代久远的旧文件被政府站清理 |
+
+**31 个失效 PDF 已用 `cleanup_broken_pdfs.py --apply` 自动清空（只动 `红头PDF` 一列，官方链接 / 附件 / 正文三列不动 —— 详情页还活着，替代资源能在那里找到）。复测 6/31 抽样全部一致 404，非沙箱抖动。25/31 的「官方链接」仍 OK，2/31 是 SPA 详情页，无两条都失效的情况**（备份在 `_backup/gov_docs.BEFORE-link-cleanup-2026-09-12.csv`）。
+
+> **怎么用这份快照**：四档中除 ✘ 已修，其它都无需处理。巡检脚本本身输出 JSON 报告（不入库，2.3 MB，跑一次 50 分钟），核心四档数字由 `data/link_check_summary.json` 提供，`build_readme.py` 读它渲染本节。
 
 ## 已知检索盲区（按标题检索找不到的）
 
@@ -288,7 +303,7 @@
 | [关于开展2026年度杨浦区工程总承包、全过程工程咨询政策申报的通知](https://www.shanghai.gov.cn/zhengce/detail?businessId=00773563&siteId=0077) | 杨科经〔2026〕13号 | 上海市杨浦区科技和经济委员会 | 2026-07-03 | ✓ | [正文](docs/%E5%B7%A5%E7%A8%8B%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86/%E5%85%B3%E4%BA%8E%E5%BC%80%E5%B1%952026%E5%B9%B4%E5%BA%A6%E6%9D%A8%E6%B5%A6%E5%8C%BA%E5%B7%A5%E7%A8%8B%E6%80%BB%E6%89%BF%E5%8C%85%E3%80%81%E5%85%A8%E8%BF%87%E7%A8%8B%E5%B7%A5%E7%A8%8B%E5%92%A8%E8%AF%A2%E6%94%BF%E7%AD%96%E7%94%B3%E6%8A%A5%E7%9A%84%E9%80%9A%E7%9F%A5.md) · [红头PDF](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0077/f7/f7536fa53709495d82919ec1af228642/f93bc444aed0188cbe0237e6c50f562d.pdf&filename=%E5%85%B3%E4%BA%8E%E5%BC%80%E5%B1%952026%E5%B9%B4%E5%BA%A6%E6%9D%A8%E6%B5%A6%E5%8C%BA%E5%B7%A5%E7%A8%8B%E6%80%BB%E6%89%BF%E5%8C%85%E3%80%81%E5%85%A8%E8%BF%87%E7%A8%8B%E5%B7%A5%E7%A8%8B%E5%92%A8%E8%AF%A2%E6%94%BF%E7%AD%96%E7%94%B3%E6%8A%A5%E7%9A%84%E9%80%9A%E7%9F%A5.pdf) · [附表附图](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0077/39/39e0f8da7d2d408a9986043407c6e29e/452203c65d164544b621e7e17825c4eb.pdf&filename=%E9%99%84%E4%BB%B6%EF%BC%9A%E6%9D%A8%E6%B5%A6%E5%8C%BA%E5%B7%A5%E7%A8%8B%E6%80%BB%E6%89%BF%E5%8C%85%E3%80%81%E5%85%A8%E8%BF%87%E7%A8%8B%E5%B7%A5%E7%A8%8B%E5%92%A8%E8%AF%A2%E6%94%BF%E7%AD%96%E7%94%B3%E8%AF%B7%E6%8F%90%E7%BA%B2.pdf) |
 | [上海市住房和城乡建设管理委员会关于开展BIM辅助综合竣工验收的通知](https://www.shanghai.gov.cn/zhengce/detail?businessId=ae9330e3f9a3428588a413d192f2a0f7&siteId=0011) | 沪建建管〔2026〕293号 | 上海市住房和城乡建设管理委员会 | 2026-07-01 | ✓ | [正文](docs/%E5%B7%A5%E7%A8%8B%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86/%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E5%BC%80%E5%B1%95BIM%E8%BE%85%E5%8A%A9%E7%BB%BC%E5%90%88%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E7%9A%84%E9%80%9A%E7%9F%A5.md) · [红头PDF](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0011/99/99532170bf244e128a7bb3a95c4130df/b80791aa8c389e36eb5f8dc5f0058ce6.pdf&filename=%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E5%BC%80%E5%B1%95BIM%E8%BE%85%E5%8A%A9%E7%BB%BC%E5%90%88%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E7%9A%84%E9%80%9A%E7%9F%A5.pdf) |
 | [上海市住房和城乡建设管理委员会关于延长《上海市建设项目工程总承包管理办法》有效期的通知](https://www.shanghai.gov.cn/zhengce/detail?businessId=0e0118fce71542fcb6c3dafe41eee6d0&siteId=0011) | 沪建建管〔2026〕84号 | 上海市住房和城乡建设管理委员会 | 2026-03-10 | ✓ | [正文](docs/%E5%B7%A5%E7%A8%8B%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86/%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E5%BB%B6%E9%95%BF%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%B8%82%E5%BB%BA%E8%AE%BE%E9%A1%B9%E7%9B%AE%E5%B7%A5%E7%A8%8B%E6%80%BB%E6%89%BF%E5%8C%85%E7%AE%A1%E7%90%86%E5%8A%9E%E6%B3%95%E3%80%8B%E6%9C%89%E6%95%88%E6%9C%9F%E7%9A%84%E9%80%9A%E7%9F%A5.md) · [红头PDF](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0011/78/78507af3ca1e4dd19b6bd2537af2b9b2/b80791aa8c389e36eb5f8dc5f0058ce6.pdf&filename=%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E5%BB%B6%E9%95%BF%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%B8%82%E5%BB%BA%E8%AE%BE%E9%A1%B9%E7%9B%AE%E5%B7%A5%E7%A8%8B%E6%80%BB%E6%89%BF%E5%8C%85%E7%AE%A1%E7%90%86%E5%8A%9E%E6%B3%95%E3%80%8B%E6%9C%89%E6%95%88%E6%9C%9F%E7%9A%84%E9%80%9A%E7%9F%A5.pdf) |
-| [关于印发《上海市建筑工程综合竣工验收管理办法》的通知](https://zjw.sh.gov.cn/gfxwj/20251112/f4594be5e90c4facacf5a548cb06717f.html) | - | 上海市住房和城乡建设管理委员会 | 2025-11 | ✓ | [正文](docs/%E5%B7%A5%E7%A8%8B%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86/%E5%85%B3%E4%BA%8E%E5%8D%B0%E5%8F%91%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%B8%82%E5%BB%BA%E7%AD%91%E5%B7%A5%E7%A8%8B%E7%BB%BC%E5%90%88%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E7%AE%A1%E7%90%86%E5%8A%9E%E6%B3%95%E3%80%8B%E7%9A%84%E9%80%9A%E7%9F%A5.md) · [红头PDF](https://www.shanghai.gov.cn/cmsres/cb/cb58224f183c4b898a228d42a62c7490/b80791aa8c389e36eb5f8dc5f0058ce6.pdf) |
+| [关于印发《上海市建筑工程综合竣工验收管理办法》的通知](https://zjw.sh.gov.cn/gfxwj/20251112/f4594be5e90c4facacf5a548cb06717f.html) | - | 上海市住房和城乡建设管理委员会 | 2025-11 | ✓ | [正文](docs/%E5%B7%A5%E7%A8%8B%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86/%E5%85%B3%E4%BA%8E%E5%8D%B0%E5%8F%91%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%B8%82%E5%BB%BA%E7%AD%91%E5%B7%A5%E7%A8%8B%E7%BB%BC%E5%90%88%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E7%AE%A1%E7%90%86%E5%8A%9E%E6%B3%95%E3%80%8B%E7%9A%84%E9%80%9A%E7%9F%A5.md) |
 | [上海市住房和城乡建设管理委员会关于进一步规范建设单位竣工验收消防查验工作的通知](https://www.shanghai.gov.cn/zhengce/detail?businessId=52453bd2c6a540b8a768847a6e225719&siteId=0011) | 沪建质安〔2025〕173号 | 上海市住房和城乡建设管理委员会 | 2025-03-24 | ✓ | [正文](docs/%E5%B7%A5%E7%A8%8B%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86/%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E8%BF%9B%E4%B8%80%E6%AD%A5%E8%A7%84%E8%8C%83%E5%BB%BA%E8%AE%BE%E5%8D%95%E4%BD%8D%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E6%B6%88%E9%98%B2%E6%9F%A5%E9%AA%8C%E5%B7%A5%E4%BD%9C%E7%9A%84%E9%80%9A%E7%9F%A5.md) · [红头PDF](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0011/9d/9d4e23b4773243f9a132ba050bfe5b82/b80791aa8c389e36eb5f8dc5f0058ce6.pdf&filename=%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E8%BF%9B%E4%B8%80%E6%AD%A5%E8%A7%84%E8%8C%83%E5%BB%BA%E8%AE%BE%E5%8D%95%E4%BD%8D%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E6%B6%88%E9%98%B2%E6%9F%A5%E9%AA%8C%E5%B7%A5%E4%BD%9C%E7%9A%84%E9%80%9A%E7%9F%A5.pdf) |
 | [上海市住房和城乡建设管理委员会关于进一步规范和完善建筑工程施工许可审批管理工作的通知](https://www.shanghai.gov.cn/zhengce/detail?businessId=99e62fa9be3d461d8c6758c6df875073&siteId=0011) | 沪建建管〔2024〕484号 | 上海市住房和城乡建设管理委员会 | 2024-09-19 | ✓ | [正文](docs/%E5%BB%BA%E7%AD%91%E8%AE%BE%E8%AE%A1%E4%B8%8E%E6%8A%A5%E5%BB%BA/%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E8%BF%9B%E4%B8%80%E6%AD%A5%E8%A7%84%E8%8C%83%E5%92%8C%E5%AE%8C%E5%96%84%E5%BB%BA%E7%AD%91%E5%B7%A5%E7%A8%8B%E6%96%BD%E5%B7%A5%E8%AE%B8%E5%8F%AF%E5%AE%A1%E6%89%B9%E7%AE%A1%E7%90%86%E5%B7%A5%E4%BD%9C%E7%9A%84%E9%80%9A%E7%9F%A5.md) · [红头PDF](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0011/0e/0e461063cc7a47f4b41dd821832a64f4/b80791aa8c389e36eb5f8dc5f0058ce6.pdf&filename=%E4%B8%8A%E6%B5%B7%E5%B8%82%E4%BD%8F%E6%88%BF%E5%92%8C%E5%9F%8E%E4%B9%A1%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86%E5%A7%94%E5%91%98%E4%BC%9A%E5%85%B3%E4%BA%8E%E8%BF%9B%E4%B8%80%E6%AD%A5%E8%A7%84%E8%8C%83%E5%92%8C%E5%AE%8C%E5%96%84%E5%BB%BA%E7%AD%91%E5%B7%A5%E7%A8%8B%E6%96%BD%E5%B7%A5%E8%AE%B8%E5%8F%AF%E5%AE%A1%E6%89%B9%E7%AE%A1%E7%90%86%E5%B7%A5%E4%BD%9C%E7%9A%84%E9%80%9A%E7%9F%A5.pdf) |
 | [关于印发《上海市造林项目竣工验收办法》的通知](https://www.shanghai.gov.cn/zhengce/detail?businessId=0ca86a93-9fc0-4219-8807-8abd75951fbc&siteId=0039) | 沪绿容〔2024〕182号 | 上海市绿化和市容管理局 | 2024-05-06 | ✓ | [正文](docs/%E5%B7%A5%E7%A8%8B%E5%BB%BA%E8%AE%BE%E7%AE%A1%E7%90%86/%E5%85%B3%E4%BA%8E%E5%8D%B0%E5%8F%91%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%B8%82%E9%80%A0%E6%9E%97%E9%A1%B9%E7%9B%AE%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E5%8A%9E%E6%B3%95%E3%80%8B%E7%9A%84%E9%80%9A%E7%9F%A5.md) · [红头PDF](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0039/cf/cfcc2036c1e84e1ab1cc4e80a22d70f1/ccd2836c4239832843f320978b0f17e1.pdf&filename=%E5%85%B3%E4%BA%8E%E5%8D%B0%E5%8F%91%E3%80%8A%E4%B8%8A%E6%B5%B7%E5%B8%82%E9%80%A0%E6%9E%97%E9%A1%B9%E7%9B%AE%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E5%8A%9E%E6%B3%95%E3%80%8B%E7%9A%84%E9%80%9A%E7%9F%A5.pdf) · [附表附图](https://www.shanghai.gov.cn/gwk/resource/file?pathname=2/0039/ae/aeecbd4b74334dd9833d4efbccfebaf9/3da90db5ac8eb23685c7be613c33cc14.pdf&filename=%E9%99%84%E4%BB%B61%EF%BC%9A%E4%B8%8A%E6%B5%B7%E5%B8%82%E9%80%A0%E6%9E%97%E9%A1%B9%E7%9B%AE%E7%AB%A3%E5%B7%A5%E9%AA%8C%E6%94%B6%E5%8A%9E%E6%B3%95.pdf)（2 个） |

@@ -365,6 +365,28 @@ def build_readme(rows, cat_files, town_fn="", town=None):
       "想一次覆盖全，用 [上海市统一政策发布平台](https://www.shanghai.gov.cn/zhengce/list)"
       "——它纵向贯通市/区/镇三级、横向覆盖各部门，本库的区级数据即来源于此。\n")
 
+    # ---------------- 链接巡检快照（可选：data/link_check_summary.json 存在时渲染）
+    link_summary = os.path.join(HERE, "data", "link_check_summary.json")
+    if os.path.exists(link_summary):
+        import json
+        lc = json.load(open(link_summary, encoding="utf-8"))
+        A("\n## 链接巡检：%s 个 URL 的状态快照（%s）\n\n" %
+          ("{:,}".format(lc["总数"]), lc["日期"]))
+        A("`check_links.py --net --json` 把 `gov_docs.csv` 里每个条目的"
+          "**官方链接**与**红头PDF**两个字段都拉一遍。判定分四档：\n\n")
+        A("| 判定 | 数量 | 占比 | 含义 |\n|---|---|---|---|\n")
+        for level, count, desc in lc["档位"]:
+            pct = "%.1f%%" % (100 * count / lc["总数"])
+            A("| %s | %s | %s | %s |\n" %
+              (level, "{:,}".format(count), pct, desc))
+        if "失效处理" in lc:
+            A("\n**%s**（备份在 `%s`）。\n" %
+              (lc["失效处理"]["说明"].rstrip("。"), lc["失效处理"]["备份"]))
+        A("\n> **怎么用这份快照**：四档中除 ✘ 已修，其它都无需处理。"
+          "巡检脚本本身输出 JSON 报告（不入库，2.3 MB，跑一次 50 分钟），"
+          "核心四档数字由 `data/link_check_summary.json` 提供，"
+          "`build_readme.py` 读它渲染本节。\n")
+
     # ---------------- 已知检索盲区（诚实标注，避免误以为漏收）
     A("\n## 已知检索盲区（按标题检索找不到的）\n\n")
     A("有若干实务高频主题，**没有以它命名的独立文件**，条款散落在综合性文件里。"
