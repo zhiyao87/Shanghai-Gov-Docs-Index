@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 """上海建设工程政府发文索引 —— 生成器。
 
-三数据源合并
+五数据源合并
 ------------
+0. 国家法律法规数据库（上海市地方性法规） data/raw_flk_sh_laws.tsv  （优先级 0）
 1. 上海市人民政府「现行市政府规章」库       data/raw_gz_rules.tsv      （优先级 1）
 2. 市住建委「规范性文件」栏目               data/raw_zjw_gfxwj.tsv     （优先级 2）
 3. 上海市统一政策发布平台（市/区/街镇三级） data/raw_policy_all.json   （优先级 3）
+4. 上海人大「法规公布」栏目（近期地方性法规）data/raw_shrd_laws.tsv     （优先级 4）
+
+为什么必须有源 0：地方性法规由市人大及其常委会制定，效力高于政府规章，
+而市政府那三个源**一条都不含**。《上海市住宅物业管理规定》《上海市城乡规划条例》
+《上海市建筑市场管理条例》这类报建高频依据全在地方性法规里 —— 缺了它库是残的。
+源 4 与源 0 不重复：源 4 是人大官网的「近期公布流」，源 0 覆盖全部现行法规。
 
 产出
 ----
@@ -25,6 +32,7 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -114,6 +122,8 @@ def level_of(agency, platform_level=""):
 def type_of(title, source):
     if source == "gz_rules":
         return "政府规章"
+    if source == "flk":
+        return "地方性法规"
     t = title or ""
     for name, pat in TYPE_RULES:
         if re.search(pat, t):
@@ -175,6 +185,84 @@ def load_zjw():
     return out
 
 
+def load_flk():
+    """地方性法规（国家法律法规数据库）。同一法规有多个历史版本，只留最新的现行文本。"""
+    path = os.path.join(DATA, "raw_flk_sh_laws.tsv")
+    if not os.path.exists(path):
+        return []
+    raw = []
+    with open(path, encoding="utf-8") as f:
+        next(f, None)
+        for line in f:
+            p = line.rstrip("\n").split("\t")
+            if len(p) < 6:
+                continue
+            raw.append({"标题": p[0].strip(), "公布日期": p[1], "施行日期": p[2],
+                        "时效性": p[3], "制定机关": p[4], "bbbs": p[5]})
+
+    # 「关于修改…的决定 / 关于废止…的决定」不单列：其效力已并入被修改法规的现行文本，
+    # 单列只会把真正要查的现行文本压下去。
+    raw = [r for r in raw if not re.search(r"关于(修改|废止|修正).{0,4}(决定|规定)$", r["标题"])]
+
+    rank = {"有效": 0, "尚未生效": 1, "已修改": 2, "": 3}
+    best = {}
+    for r in raw:
+        k = norm_title(r["标题"])
+        cur = best.get(k)
+        key = (rank.get(r["时效性"], 4), -int((r["公布日期"] or "0")[:4] or 0))
+        if cur is None or key < cur[0]:
+            best[k] = (key, r)
+
+    ft = os.path.join(DATA, "flk_fulltext")
+    out = []
+    for _k, (_key, r) in best.items():
+        txt = os.path.join(ft, r["bbbs"] + ".txt")
+        out.append({
+            "标题": r["标题"],
+            "发布单位": r["制定机关"] or "上海市人民代表大会常务委员会",
+            "文号": "",
+            "发布日期": r["公布日期"],
+            "层级": "市级",
+            "状态": r["时效性"] or "有效",
+            "来源": "国家法律法规数据库",
+            "官方链接": "https://flk.npc.gov.cn/detail?id=%s&title=%s"
+                        % (r["bbbs"], urllib.parse.quote(r["标题"])),
+            "优先级": 0,
+            "_siteId": "", "_businessId": "",
+            "正文": ("data/flk_fulltext/%s.txt" % r["bbbs"]) if os.path.exists(txt) else "",
+        })
+    return out
+
+
+def load_shrd():
+    """上海人大「法规公布」栏目：近年新公布的地方性法规（补源 0 未及的近期文件）。"""
+    path = os.path.join(DATA, "raw_shrd_laws.tsv")
+    if not os.path.exists(path):
+        return []
+    out, seen = [], set()
+    with open(path, encoding="utf-8") as f:
+        next(f, None)
+        for line in f:
+            p = line.rstrip("\n").split("\t")
+            if len(p) < 2:
+                continue
+            title, url = p[0].strip(), p[1].strip()
+            if not title or title in seen:
+                continue
+            seen.add(title)
+            out.append({
+                "标题": title,
+                "发布单位": "上海市人民代表大会常务委员会",
+                "文号": "", "发布日期": "",
+                "层级": "市级", "状态": "有效",
+                "来源": "上海人大·法规公布",
+                "官方链接": url,
+                "优先级": 4,
+                "_siteId": "", "_businessId": "",
+            })
+    return out
+
+
 def load_platform():
     path = os.path.join(DATA, "raw_policy_all.json")
     if not os.path.exists(path):
@@ -207,7 +295,8 @@ def load_platform():
 def build_rows():
     merged = {}
     stats = Counter()
-    for loader in (load_gz_rules(), load_zjw(), load_platform()):
+    src_tag = {"市政府规章库": "gz_rules", "国家法律法规数据库": "flk"}
+    for loader in (load_flk(), load_gz_rules(), load_zjw(), load_platform(), load_shrd()):
         for row in loader:
             title = row["标题"]
             res = is_relevant(title, row["发布单位"])
@@ -221,8 +310,8 @@ def build_rows():
             row = dict(row)
             row["分类"] = cat
             row["标签"] = "、".join(hits)
-            row["类型"] = type_of(title, "gz_rules" if row["来源"] == "市政府规章库" else "other")
-            row["正文"] = ""
+            row["类型"] = type_of(title, src_tag.get(row["来源"], "other"))
+            row.setdefault("正文", "")
             merged[key] = row
             stats[row["来源"]] += 1
 
@@ -232,27 +321,34 @@ def build_rows():
     return rows
 
 
-FIELDS = ["分类", "类型", "层级", "标题", "文号", "发布单位", "发布日期", "状态", "来源", "官方链接", "正文"]
+FIELDS = ["分类", "类型", "层级", "标题", "文号", "发布单位", "发布日期", "状态", "来源",
+          "官方链接", "红头PDF", "红头封面", "附件", "正文"]
+
+# 重跑时需要从旧 CSV 沿用的列（正文与三类权威原件链接都不该因重建清单而丢）
+CARRY_COLS = ["正文", "红头PDF", "红头封面", "附件"]
 
 
 def carry_over_fulltext(rows, path=OUT_CSV):
-    """把上一次抓好的正文路径沿用下来 —— 重跑本脚本不应丢掉 fetch_fulltext 的成果。"""
+    """把上一次抓好的正文与原件链接沿用下来 —— 重跑本脚本不应丢掉 fetch 的成果。"""
     if not os.path.exists(path):
         return rows
     old = {}
     with open(path, encoding="utf-8-sig") as f:
         for r in csv.DictReader(f):
-            if r.get("正文"):
-                old[norm_title(r.get("标题"))] = r["正文"]
+            if any(r.get(c) for c in CARRY_COLS):
+                old[norm_title(r.get("标题"))] = {c: r.get(c, "") for c in CARRY_COLS}
     if not old:
         return rows
     n = 0
     for r in rows:
-        p = old.get(norm_title(r["标题"]))
-        if p:
-            r["正文"] = p
-            n += 1
-    print("   沿用已有正文 %d 条" % n)
+        got = old.get(norm_title(r["标题"]))
+        if not got:
+            continue
+        for c in CARRY_COLS:
+            if got.get(c) and not r.get(c):
+                r[c] = got[c]
+        n += 1
+    print("   沿用已有正文/原件 %d 条" % n)
     return rows
 
 

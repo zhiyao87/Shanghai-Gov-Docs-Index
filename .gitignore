@@ -1,6 +1,11 @@
 # ---- 原始抓取缓存：体积大（约 27 MB）、可随时重建，不入库 ----
 data/raw_policy_all.json
 
+# ---- 权威原件（PDF/PNG）：只登记官方直链，不镜像进公开仓库 ----
+# 需要离线留存时跑 `python fetch_assets.py --download` 落到本地即可
+attachments/
+attachment_manifest.csv
+
 # ---- Python ----
 __pycache__/
 *.py[cod]
