@@ -37,7 +37,10 @@ SYNC_SCRIPTS = ["add_missing.py", "scrape_lhsr.py", "fetch_lhsr_docs.py",
                 "clean_lhsr.py", "scrape_ghzyj.py", "fetch_ghzyj_docs.py",
                 "probe_agency.py",
                 "sync_to_git.py", "classify.py",
-                "build_docs_index.py", "build_readme.py"]
+                "build_docs_index.py", "build_readme.py",
+                # 2026-09-11 追加：通用委办局抓取链 + 主题速查 + 街镇级下架脚本
+                "scrape_agency.py", "fetch_agency_docs.py", "zjw_screen.py",
+                "topic_index.py", "drop_town.py"]
 
 
 def scan_md(root):
@@ -137,6 +140,25 @@ def main():
         shutil.copy2(src_csv, dst_csv)
         chk = len(list(csv.DictReader(io.open(dst_csv, encoding="utf-8-sig"))))
         print("  回灌完成，F 盘现有 %d 条" % chk)
+
+    # ---------- 4.5 同步生成物：README.md 与 index/*.md ----------
+    # （2026-09-11 踩坑：初版只同步了 docs/ 与 CSV，重建后的 README 和
+    #   13 个索引册被漏在仓库外，导致线上 README 停在旧条数。）
+    if not dry:
+        n = 0
+        src_readme = os.path.join(HERE, "README.md")
+        if os.path.exists(src_readme):
+            shutil.copy2(src_readme, os.path.join(GIT, "README.md"))
+            n += 1
+        w_index = os.path.join(HERE, "index")
+        g_index = os.path.join(GIT, "index")
+        if os.path.isdir(w_index):
+            os.makedirs(g_index, exist_ok=True)
+            for fn in sorted(os.listdir(w_index)):
+                if fn.endswith(".md"):
+                    shutil.copy2(os.path.join(w_index, fn), os.path.join(g_index, fn))
+                    n += 1
+        print("同步 README + index %d 个" % n)
 
     # ---------- 5. 同步脚本 ----------
     if not dry:

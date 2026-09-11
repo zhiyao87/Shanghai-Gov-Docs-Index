@@ -157,11 +157,18 @@ def write_category_indexes(rows):
 
 
 def write_town_index(rows):
-    """街镇级发文单独成册：这是最容易被忽略、但在实操中最要命的一层。
+    """街镇级发文单独成册 —— **2026-09-11 戴工指示：街镇级不再收录，本册停用**。
 
-    一个限额以下的小项目，依据往往不是国标也不是市里文件，而是项目所在街镇
-    自己出的「限额以下小型建设工程管理办法」。市/区两级栏目里找不到。
+    原设计理由（留档）：街镇是「限额以下小型建设工程」的实际管理主体，
+    限额以下小项目（装修、加建、小型改造）报建时真正卡人的是街镇自己出的办法，
+    而它在市、区两级栏目里检索不到。
+    现按戴工指示整层移除：街镇级条目已从 CSV 删除，正文与索引册一并下架。
+    函数保留但直接返回空，避免调用方改动。
     """
+    return None, []
+
+
+def _write_town_index_disabled(rows):
     town = [r for r in rows if r["层级"] == "街镇级"]
     fn = "index/11-街镇级发文.md"
     L = ["# 街镇级发文\n",
@@ -228,8 +235,11 @@ def build_readme(rows, cat_files, town_fn="", town=None):
          sum(1 for r in rows if (r.get("附件") or "").strip())))
     A("| 地方性法规（市人大制定，效力最高） | **%d** |\n"
       % sum(1 for r in rows if r["类型"] == "地方性法规"))
-    A("| 市级 ／ 区级 ／ 街镇级 ／ 未标注 | %d ／ %d ／ %d ／ %d |\n"
-      % (lv["市级"], lv["区级"], lv["街镇级"], len(rows) - lv["市级"] - lv["区级"] - lv["街镇级"]))
+    # 2026-09-11 起层级只剩三类：市级 ／ 区级 ／ 市级（临港）。
+    # 街镇级已整层下架；原「其他」里的临港新片区管委会 41 条改标为「市级（临港）」
+    # （管委会是市政府派出机构，其发文属市级），其余并入市级。
+    A("| 市级 ／ 区级 ／ 市级（临港） | %d ／ %d ／ %d |\n"
+      % (lv["市级"], lv["区级"], lv["市级（临港）"]))
     _yrs = sorted(r["发布日期"][:4] for r in rows if r["发布日期"][:4].isdigit())
     A("| 时间跨度 | %s – %s |\n" % (_yrs[0], _yrs[-1]) if _yrs else "| 时间跨度 | - |\n")
     A("| 覆盖区 | %d / 16 个区有收录 |\n" % sum(1 for d, _ in DISTRICTS if districts.get(d)))
@@ -248,8 +258,8 @@ def build_readme(rows, cat_files, town_fn="", town=None):
         if not n:
             continue
         A("| %s | %s | %d | [查看](%s) |\n" % (CAT_NO[i - 1] if i <= 10 else i, cat, n, cat_files.get(cat, "")))
-    A("| 11 | 街镇级发文（单独成册） | %d | [查看](index/11-街镇级发文.md) |\n"
-      % sum(1 for r in rows if r["层级"] == "街镇级"))
+    # 街镇级册已于 2026-09-11 按戴工指示停用（条目、正文、索引册全部下架），
+    # 此处不再输出该行 —— 否则会留下指向已删文件的死链。
     A("| 12 | **主题速查**（屋顶绿化/光伏/绿建/海绵/既有建筑改造） | - | "
       "[查看](index/12-主题速查.md) |\n")
 
@@ -514,7 +524,8 @@ def main():
     md = build_readme(rows, cat_files, town_fn, town)
     open(os.path.join(HERE, "README.md"), "w", encoding="utf-8").write(md)
     print("✓ README.md（%.1f KB）" % (os.path.getsize(os.path.join(HERE, "README.md")) / 1024))
-    print("✓ index/ 共 %d 个分类文件 + 街镇级册（%d 条）" % (len(cat_files), len(town)))
+    print("✓ index/ 共 %d 个分类文件" % len(cat_files))
+    print("  （街镇级册已按 2026-09-11 指示停用）")
 
 
 if __name__ == "__main__":
