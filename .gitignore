@@ -37,3 +37,6 @@ desktop.ini
 # ---- 抓取中途可能产生的半成品 ----
 data/*.partial
 data/*.bak
+
+# ---- 链接巡检 JSON：每跑一次 2.3 MB，可重新跑 check_links.py 重建 ----
+link-check-*.json
