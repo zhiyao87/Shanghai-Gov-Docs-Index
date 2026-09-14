@@ -137,6 +137,28 @@ def get_remote_head(owner_repo, branch):
     return call("GET", "/repos/%s/git/ref/heads/%s" % (owner_repo, branch))["object"]["sha"]
 
 
+def get_remote_blob_shas(owner_repo, branch):
+    """取远端 HEAD 的完整 tree，返回已有 blob 的 sha 集合（用于增量推送）。
+
+    git 是内容寻址的：同内容的 blob 在本地与远端是同一个 sha。远端已有的
+    就不必重复上传 —— 全量上传 2900+ blob 会触发 GitHub secondary rate
+    limit（HTTP 403 "You have exceeded a secondary rate limit"），
+    增量后通常只剩个位数。
+    """
+    try:
+        head = get_remote_head(owner_repo, branch)
+        commit = call("GET", "/repos/%s/git/commits/%s" % (owner_repo, head))
+        tree_sha = commit["tree"]["sha"]
+        tree = call("GET", "/repos/%s/git/trees/%s?recursive=1"
+                    % (owner_repo, tree_sha))
+        if tree.get("truncated"):
+            print("  ⚠ 远端 tree 过大被截断，退回全量上传")
+            return set()
+        return {it["sha"] for it in tree.get("tree", []) if it["type"] == "blob"}
+    except SystemExit:
+        return set()
+
+
 def update_ref(owner_repo, branch, new_sha):
     """POST/PATCH refs。优先 POST（远端无此 ref 时）；存在则 PATCH 但不带 force。"""
     try:
@@ -196,20 +218,27 @@ def main():
     print("账号 %s → %s@%s" % (user, owner_repo, branch))
 
     entries = collect_blobs(repo)
-    shas = [e[1] for e in entries]
-    print("  读取内容 …")
-    blobs = read_blobs(repo, shas)
+    total = len(entries)
 
-    print("  上传 blob（并发 8）…")
-    done, total = 0, len(entries)
-    with ThreadPoolExecutor(max_workers=8) as ex:
-        new_shas = list(ex.map(lambda e: upload_blob(blobs[e[1]]), entries))
-        for _ in new_shas:
-            done += 1
-            if done % 400 == 0:
-                print("    %d/%d" % (done, total))
+    # 增量：远端已有的 blob 不重复上传（git 内容寻址 → 同内容同 sha）
+    print("  查询远端已有 blob …")
+    remote_have = get_remote_blob_shas(owner_repo, branch)
+    need = [e for e in entries if e[1] not in remote_have]
+    print("  远端已有 %d 个 ／ 需上传 %d 个" % (len(remote_have), len(need)))
 
-    items = [(entries[i][0], new_shas[i], entries[i][2]) for i in range(total)]
+    if need:
+        print("  读取内容 …")
+        blobs = read_blobs(repo, [e[1] for e in need])
+        print("  上传 blob（并发 4）…")
+        done = 0
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            for _ in ex.map(lambda e: upload_blob(blobs[e[1]]), need):
+                done += 1
+                if done % 200 == 0:
+                    print("    %d/%d" % (done, len(need)))
+
+    # entries 的 sha 就是 blob 内容哈希，与远端一致，无需替换
+    items = entries
     print("  建目录树 …")
     root = build_tree(items)
 
@@ -217,7 +246,7 @@ def main():
     parent = get_remote_head(owner_repo, branch)
     print("  远端 parent: %s" % parent[:10])
     print("  建提交 …")
-    commit = call("POST", "/git/commits",
+    commit = call("POST", "/repos/%s/git/commits" % G_REPO,
                   {"message": msg, "tree": root, "parents": [parent]})
     sha = commit["sha"]
     print("  新 commit:  %s" % sha[:10])

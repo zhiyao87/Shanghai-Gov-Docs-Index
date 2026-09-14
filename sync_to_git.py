@@ -144,19 +144,47 @@ def main():
     # ---------- 4.5 同步生成物：README.md 与 index/*.md ----------
     # （2026-09-11 踩坑：初版只同步了 docs/ 与 CSV，重建后的 README 和
     #   13 个索引册被漏在仓库外，导致线上 README 停在旧条数。）
+    # （2026-09-14 踩坑二：这段只做「新增 / 覆盖」，从不删 —— 街镇级下架后
+    #   index/11-街镇级发文.md 一直留在仓库里，直到发 v1.0.0 前盘点才发现。
+    #   现改为与 docs/ 同样的双向同步：先备份删除「仅仓库里有的」，再覆盖同步。）
+    w_index = os.path.join(HERE, "index")
+    g_index = os.path.join(GIT, "index")
+    if os.path.isdir(w_index) and os.path.isdir(g_index):
+        wf = {f for f in os.listdir(w_index) if f.endswith(".md")}
+        gf = {f for f in os.listdir(g_index) if f.endswith(".md")}
+        stale = sorted(gf - wf)
+        if stale:
+            print("index 待删（仅仓库里有）：%d 个 → %s"
+                  % (len(stale), ", ".join(stale)))
+            if not dry:
+                bdir = os.path.join(BACKUP, "index-removed-%d个" % len(stale))
+                os.makedirs(bdir, exist_ok=True)
+                ok = 0
+                for fn in stale:
+                    shutil.copy2(os.path.join(g_index, fn),
+                                 os.path.join(bdir, fn))
+                    if (os.path.getsize(os.path.join(g_index, fn)) ==
+                            os.path.getsize(os.path.join(bdir, fn))):
+                        ok += 1
+                if ok != len(stale):
+                    print("✗ index 备份不完整（%d/%d），放弃删除" % (ok, len(stale)))
+                    return 1
+                for fn in stale:
+                    os.remove(os.path.join(g_index, fn))
+                print("  已删除 index 残留 %d 个（备份在 %s）" % (len(stale), bdir))
+
     if not dry:
         n = 0
         src_readme = os.path.join(HERE, "README.md")
         if os.path.exists(src_readme):
             shutil.copy2(src_readme, os.path.join(GIT, "README.md"))
             n += 1
-        w_index = os.path.join(HERE, "index")
-        g_index = os.path.join(GIT, "index")
         if os.path.isdir(w_index):
             os.makedirs(g_index, exist_ok=True)
             for fn in sorted(os.listdir(w_index)):
                 if fn.endswith(".md"):
-                    shutil.copy2(os.path.join(w_index, fn), os.path.join(g_index, fn))
+                    shutil.copy2(os.path.join(w_index, fn),
+                                 os.path.join(g_index, fn))
                     n += 1
         print("同步 README + index %d 个" % n)
 
